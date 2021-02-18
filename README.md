@@ -23,6 +23,8 @@ I've been writing this package as part of my Auto Character System development e
   * ACS3 is mainly dealing with the items, modifiers, channels and relationships between them so the natural focus of modox is in this area. You won't find any functionality focused on modeling or shading here.
   
   * Most of the codebase is in the form of class methods grouped into classes. This makes it rather easy to copy functions to different codebase and having it work without making any adjustments. The `Item` class is different, it extends MODO's native `modo.Item` class. In the beginning that was the idea, to extend native `modo` library. However, in the course of development it appeared that using separate class methods works better for my purposes.
+  
+  * I put a fair amount of effort into documenting the code, there should be comments for most of the functions contained in the library. 
 
   * There are some inconsistencies, unfinished functions and probably minor mistakes. If you find anything that's worth fixing/improving - let me know.
 
