@@ -1,17 +1,17 @@
 # modox
 Modox is a Python package that consists of a collection of modules with utility classes and functions that enhance Python API in MODO.
-I've been writing this package as part of my Auto Character System development effort and thought it might be useful resource for MODO community.
+I've been writing this package as part of my **Auto Character System 3** development effort and thought it might be useful resource for MODO community.
 
-#### MODOX IS NOT DEVELOPED AS GENERAL PURPOSE LIBRARY. I AM PUBLISHING IT FOR EDUCATIONAL PURPOSES ONLY.
+#### MODOX IS NOT DEVELOPED AS GENERAL PURPOSE LIBRARY. I AM PUBLISHING IT FOR EDUCATIONAL PURPOSES MAINLY.
 
 
 
 ### IMPORTANT NOTES
 
   * You can copy/paste classes and functions published in this repository to your own projects.
-
-  * I DO NOT RECOMMEND using this library directly within your MODO kit. I am using modox as-is within ACS3. If you use modox as-is in your own project and want to use ACS3 - you will get a conflict.
-
+  
+  * I do not recommend this but if you want to use `modox` as-is you need to change the name of the package (rename `modox` folder to something different, for example `modoextra`). The reason is that I am using `modox` as-is within ACS3. If you use `modox` as-is in your own project and want to use ACS3 - you will get a conflict.
+  
   * I DO NOT SUPPORT this library.
 
   * I DO NOT GUARANTEE backwards compatibility with any subsequent updates to this codebase. As mentioned above, I develop modox as part of ACS3 so I update/refactor/change it in any way I see fit for further ACS3 development.
@@ -20,7 +20,7 @@ I've been writing this package as part of my Auto Character System development e
 
 ### ABOUT CODEBASE
 
-  * ACS3 is mainly dealing with the items, modifiers, channels and relationships between them so the natural focus of modox is in this area. You won't find any functionality focused on modeling or shading here.
+  * ACS3 is mainly dealing with the assemblies, items, modifiers, channels and relationships between them so the natural focus of modox is in this area. You won't find any functionality concerning modeling or shading here.
   
   * Most of the codebase is in the form of class methods grouped into classes. This makes it rather easy to copy functions to different codebase and having it work without making any adjustments. The `Item` class is different, it extends MODO's native `modo.Item` class. In the beginning that was the idea, to extend native `modo` library. However, in the course of development it appeared that using separate class methods works better for my purposes.
   
