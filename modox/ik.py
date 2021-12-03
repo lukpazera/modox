@@ -6,6 +6,8 @@ import modo
 import const as c
 from run import run
 from locator import LocatorUtils
+from select import ItemSelection
+from select import SelectionMode
 
 
 class IKUtils(object):
@@ -181,13 +183,25 @@ class IK23BarSolver(object):
 
     def resetFromFK(self):
         """ Resets IK chain from FK Rest pose.
-        
-        Does not reset the goal.
+
+        This is a bit weird, may need revision at some point.
+        Right now I invoke "old" ik reset command for 2 bar IK.
+        I do it because old command makes it possible to not update the goal.
+        3 bar IK doesn't work with old reset command though so I'm using new command for that.
+        Updating the goal shouldn't be the issue so perhaps 2 bar update
+        should be replaced with new command to. Need to test that.
         """
-        try:
-            lx.eval('!ik.apply Bar23 reset:true item:{%s} resetGoal:false' % self._modoItem.id)
-        except RuntimeError:
-            lx.out('Resetting IK failed!')
+        if self.type == self.Type.BAR2:
+            try:
+                lx.eval('!ik.apply Bar23 reset:true item:{%s} resetGoal:false' % self._modoItem.id)
+            except RuntimeError:
+                lx.out('Resetting 2 Bar IK failed!')
+        else:
+            ItemSelection().set(self.goal, SelectionMode.REPLACE)
+            try:
+                lx.eval('!ik.updateRestPose mode:sel')
+            except RuntimeError:
+                lx.out('Resetting 3 Bar IK failed!')
 
     def switch(self, direction):
         """
@@ -295,6 +309,10 @@ class IK23BarSetup(object):
         """ Gets ik joints list.
         
         These will be 3 items (2 bar ik) or 4 items (3 bar ik).
+
+        Returns
+        -------
+        [modo.Item]
         """
         solverItem = self._ikSolver.modoItem
         chain = []

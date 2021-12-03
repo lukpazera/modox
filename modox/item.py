@@ -355,6 +355,22 @@ class ItemUtils(object):
             fwdGraph << graph
 
     @classmethod
+    def hasReverseGraphConnections(cls, modoItem, graphName):
+        """
+        Tests whether given item as any reverse connections on a given graph.
+
+        Parameters
+        ----------
+        modoItem : modo.Item
+            Item that will be tested.
+
+        graphName : str
+            Name of the graph to test.
+        """
+        graph = modoItem.itemGraph(graphName)
+        return graph._graph.RevCount(graph._item) > 0
+
+    @classmethod
     def addReverseGraphConnections(self, modoItem, targetItems, graphName):
         """ Adds reverse graph connections between items.
         
@@ -606,8 +622,9 @@ class ItemUtils(object):
         
         Parameters
         ----------
-        scriptAlias : str
+        scriptAlias : str, None
             Needs to be script alias defined in a config for a particular script file.
+            Pass None to clear the drop script.
         """
         modoItem.setTag('ACRT', scriptAlias)
     
@@ -616,6 +633,32 @@ class ItemUtils(object):
         """ Clears create drop script from an item.
         """
         modoItem.setTag('ACRT', None)
+
+    @classmethod
+    def setSourceDropScript(cls, modoItem, scriptAlias=None):
+        """
+        Sets or clears source drop script.
+
+        Parameters
+        ----------
+        scriptAlias : str, None
+            Needs to be script alias defined in a config for a particular script file.
+            Pass None to clear the drop script.
+        """
+        modoItem.setTag('IDSS', scriptAlias)
+
+    @classmethod
+    def setDestinationDropScript(cls, modoItem, scriptAlias=None):
+        """
+        Sets or clears destination drop script.
+
+        Parameters
+        ----------
+        scriptAlias : str, None
+            Needs to be script alias defined in a config for a particular script file.
+            Pass None to clear the drop script.
+        """
+        modoItem.setTag('IDSD', scriptAlias)
 
     @classmethod
     def setItemCommandManually(cls, modoItem, commandString, denyDropAction=False):
@@ -638,6 +681,38 @@ class ItemUtils(object):
         modoItem.channel('ecEnable').set(True, time=0.0, key=False, action=lx.symbol.s_ACTIONLAYER_SETUP)
         if denyDropAction:
             modoItem.setTag('NDRG', 'denied')
+
+    @classmethod
+    def removeItemCommand(cls, modoItem):
+        """
+        Removes item command from given item.
+
+        Parameters
+        ----------
+        modoItem : modo.Item
+        """
+        internalItem = modoItem.internalItem
+        if internalItem.PackageTest('execCommand'):
+            internalItem.PackageRemove('execCommand')
+
+    @classmethod
+    def getItemCommand(cls, modoItem):
+        """
+        Gets the item command from an item (if any).
+
+        Parameters
+        ----------
+        modoItem : modo.Item
+
+        Returns
+        -------
+        str, None
+            Command string or None if item command is not set up on an item.
+        """
+        internalItem = modoItem.internalItem
+        if not internalItem.PackageTest('execCommand'):
+            return None
+        return modoItem.channel('ecCmdString').get(time=0.0, action=lx.symbol.s_ACTIONLAYER_SETUP)
 
     # -------- Private functions
     

@@ -158,6 +158,48 @@ class Assembly(object):
         return inputs, outputs
 
     @classmethod
+    def assignChannelsAsInput(cls, channels):
+        """
+        Assigns given assembly channel as input.
+
+        Note that this function is really bare.
+        It assumes the channel is not assigned neither as input nor as output already,
+        it doesn't check or clear existing assignement.
+        It also doesn't test if passed channel is valid assembly channel, you're on your own here.
+
+        Parameters
+        ----------
+        channel : modo.Channel, [modo.Channel]
+        """
+        if type(channels) not in (list, tuple):
+            channels = [channels]
+
+        for channel in channels:
+            graph = lx.object.ChannelGraph(channel.item.scene.GraphLookup('assemblyChans'))
+            graph.AddLink(channel.item.internalItem, -1, channel.item.internalItem, channel.index)
+
+    @classmethod
+    def assignChannelsAsOutput(cls, channels):
+        """
+        Assigns given assembly channel as output.
+
+        Note that this function is really bare.
+        It assumes the channel is not assigned neither as input nor as output already,
+        it doesn't check or clear existing assignement.
+        It also doesn't test if passed channel is valid assembly channel, you're on your own here.
+
+        Parameters
+        ----------
+        channel : modo.Channel
+        """
+        if type(channels) not in (list, tuple):
+            channels = [channels]
+
+        for channel in channels:
+            graph = lx.object.ChannelGraph(channel.item.scene.GraphLookup('assemblyChans'))
+            graph.AddLink(channel.item.internalItem, channel.index, channel.item.internalItem, -1)
+
+    @classmethod
     def autoConnectOutputsToInputs(cls, assemblyFrom, assemblyTo):
         """
         Automatically connects outputs of the assemblyFrom to inputs of assemblyTo.

@@ -31,8 +31,34 @@ class SceneUtils(object):
             raise
 
 
+class FrameRange(object):
+    SCENE = 'scene'
+    CURRENT = 'current'
+    WORK = 'work'
+
+
 class TimeUtils(object):
-    
+
+    FrameRange = FrameRange
+
+    @classmethod
+    def getSceneFrameRange(cls, rangeType=FrameRange.CURRENT):
+        """
+        Gets one of frame ranges set in the scene.
+
+        Returns
+        -------
+        int, int
+        """
+        startTime = lx.eval('time.range %s in:?' % rangeType)
+        endTime = lx.eval('time.range %s out:?' % rangeType)
+
+        valueService = lx.service.Value()
+        startFrame = valueService.TimeToFrame(startTime)
+        endFrame = valueService.TimeToFrame(endTime)
+
+        return int(startFrame), int(endFrame)
+
     @classmethod
     def getChannelsTimeRange(cls, channels, action=lx.symbol.s_ACTIONLAYER_EDIT):
         """ Gets start and end time for a given set of channels.

@@ -3,7 +3,7 @@ import lx
 
 from log import Log
 
-def run(cmdString, log=None):
+def run(cmdString, logErrors=True, log=None):
     """ Runs a command via lx.eval.
     
     Parameters
@@ -21,11 +21,12 @@ def run(cmdString, log=None):
     """
     try:
         return lx.eval(cmdString)
-    except RuntimeError,e:
-        if log is None:
-            log = Log('python')
-        log.out('Command Failed: %s' % cmdString, log.MSG_ERROR)
-        log.startChildEntries()
-        log.out(e.message, log.MSG_ERROR)
-        log.stopChildEntries()
+    except RuntimeError, e:
+        if logErrors:
+            if log is None:
+                log = Log('python')
+            log.out('Command Failed: %s' % cmdString, log.MSG_ERROR)
+            log.startChildEntries()
+            log.out(e.message, log.MSG_ERROR)
+            log.stopChildEntries()
     return None

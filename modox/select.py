@@ -299,6 +299,36 @@ class ChannelSelection(object):
 
         return chans
 
+    def set(self, chanList, selMode=SelectionMode.REPLACE):
+        """
+        Sets channels selection.
+
+        Parameters
+        ----------
+        chanList: modo.Channel
+            Single channel or a list of channels to select.
+
+        selMode: int
+            One of SelectionMode constants.
+        """
+        if selMode == SelectionMode.REPLACE:
+            self.clear()
+
+        if not chanList:
+            return False
+        if type(chanList) not in (list, tuple):
+            chanList = [chanList]
+
+        if selMode == SelectionMode.SUBSTRACT:
+            for channel in chanList:
+                selectionPacketPointer = self._chanTranspacket.Packet(channel.item.internalItem, channel.index)
+                self._selectionService.Deselect(self._chanSeltypeCode, selectionPacketPointer)
+        else:
+            for channel in chanList:
+                selectionPacketPointer = self._chanTranspacket.Packet(channel.item.internalItem, channel.index)
+                self._selectionService.Select(self._chanSeltypeCode, selectionPacketPointer)
+        return True
+
     # -------- Private methods
 
     def __init__(self):
@@ -528,6 +558,16 @@ class MeshComponentSelection:
         """ Clears vertex selection.
         """
         self._selectionService.Clear(self._compSeltypeCode)
+
+    @property
+    def size(self):
+        """ Gets size of item selection.
+
+        Returns
+        -------
+        int
+        """
+        return self._selectionService.Count(self._compSeltypeCode)
 
     def get(self):
         """ Gets current vertex selection.

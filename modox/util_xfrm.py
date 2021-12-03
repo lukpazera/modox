@@ -36,6 +36,40 @@ class TransformToolsUtils(object):
         elif transforms > 1:
             self._setTransformItemTool()
 
+    def getToolItemCommandStringFromChannels(self, xfrmChannels):
+        """
+        Gets a command to put into item command string that will enable transform tool
+        based on channels passed as argument.
+
+        This is the same as autoFromChannels() but instead of setting the tool it's evaluating
+        command string to set as item command to enable the tool.
+
+        Parameters
+        ----------
+        xfrmChannels : [modo.Channel]
+
+        Returns
+        -------
+        str, None
+        """
+        xfrmChanNames = [chan.name for chan in xfrmChannels]
+
+        doMove = self._testChannels(self.POS_CHANNELS, xfrmChanNames)
+        doRotate = self._testChannels(self.ROT_CHANNELS, xfrmChanNames)
+        doScale = self._testChannels(self.SCALE_CHANNELS, xfrmChanNames)
+
+        transforms = int(doMove) + int(doRotate) + int(doScale)
+        if transforms == 1:
+            if doMove:
+                return self.getMoveItemCommandString(True)
+            elif doRotate:
+                return self.getRotateItemCommandString(True)
+            elif doScale:
+                return self.getScaleItemCommandString(True)
+        elif transforms > 1:
+            return self.getTransformItemCommandString(True)
+        return None
+
     @property
     def moveItem(self):
         return lx.eval('!tool.set TransformMove ?') == 'on'
@@ -43,6 +77,9 @@ class TransformToolsUtils(object):
     @moveItem.setter
     def moveItem(self, state):
         lx.eval('!tool.set TransformMove %d' % int(state))
+
+    def getMoveItemCommandString(self, state):
+        return 'eval {tool.set TransformMoveItem %d}' % int(state)
 
     @property
     def rotateItem(self):
@@ -52,6 +89,9 @@ class TransformToolsUtils(object):
     def rotateItem(self, state):
         lx.eval('!tool.set TransformRotate %d' % int(state))
 
+    def getRotateItemCommandString(self, state):
+        return 'eval {tool.set TransformRotateItem %s}' % int(state)
+
     @property
     def scaleItem(self):
         return lx.eval('!tool.set TransformScale ?') == 'on'
@@ -60,6 +100,9 @@ class TransformToolsUtils(object):
     def scaleItem(self, state):
         lx.eval('!tool.set TransformScale %d' % int(state))
 
+    def getScaleItemCommandString(self, state):
+        return 'eval {tool.set TransformScaleItem %s}' % int(state)
+
     @property
     def transformItem(self):
         return lx.eval('!tool.set Transform ?') == 'on'
@@ -67,6 +110,9 @@ class TransformToolsUtils(object):
     @transformItem.setter
     def transformItem(self, state):
         lx.eval('!tool.set Transform %d' % int(state))
+
+    def getTransformItemCommandString(self, state):
+        return 'eval {tool.set TransformItem %d}' % int(state)
 
     @property
     def childCompensation(self):

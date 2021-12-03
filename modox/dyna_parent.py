@@ -605,12 +605,168 @@ class DynamicParentModifier(object):
         return items
 
     @property
+    def parents(self):
+        """
+        Gets a list of parents plugged into this dynamic parent modifier.
+
+        Returns
+        -------
+        [modo.Item]
+        """
+        parentIndexChan = self.inputChannel
+        chans = parentIndexChan.revLinked
+
+        parents = []
+
+        # What we get here in chans are matrix compose nodes.
+        # We need to follow these further to get the actual parent.
+        # I will assume that all 3 matrix compose inputs come from the same item
+        # and this item is the parent.
+        # For this reason we deduct parent based on first link available.
+        for chan in chans:
+            mcompose = chan.item
+            parentItemChan = modox.ChannelUtils.getInputChannel(mcompose.channel('matrixInput'), 0)
+            if parentItemChan is None:
+                continue
+
+            parents.append(parentItemChan.item)
+        return parents
+
+    @property
+    def inputChannel(self):
+        """ Gets the input channel for parent matrices.
+
+        Returns
+        -------
+        modo.Channel
+        """
+        return self._item.channel('matrixInput')
+
+    @property
     def parentChannel(self):
         """ Gets the parent channel of the modifier.
+
+        Returns
+        -------
+        modo.Channel
         """
         return self._item.channel('parent')
 
+    def getParentIndex(self, time=None, action=lx.symbol.s_ACTIONLAYER_EDIT):
+        """
+        Gets parent index at given time and from given action.
+
+        Returns
+        -------
+        int
+        """
+        chan = self.parentChannel
+        v = chan.get(time, action)
+        # Casting to int is crucial here since the value comes as long by default.
+        return int(v)
+
+    def removeCurrentParent(self):
+        """
+        Deletes parent that is set on the modifier at current time and action.
+        """
+        index = self.getParentIndex()
+        try:
+            self.removeParentAtIndex(index)
+        except IndexError:
+            raise LookupError
+
+    def removeParentAtIndex(self, index):
+        """
+        Deletes parent set at given index.
+        Parent link is deleted permanently.
+
+        Parameters
+        -
+        """
+        # The index in parent modifier channel is +1
+        # to the channel graph index for connected parents
+        # because 0 channel value is reserved for world parent.
+        # So to remove correct parent the graph index has to be parent channel
+        # index minus 1.
+        graphIndex = index - 1
+        if graphIndex < 0:
+            raise IndexError
+
+        parentIndexChan = self.inputChannel
+        chans = parentIndexChan.revLinked
+        # get channel at given index.
+        try:
+            chanToDisconnect = chans[graphIndex]
+        except IndexError:
+            raise
+
+        # Before disconnecting the parent backup times of all keyframes
+        # at which this parent is set.
+        backupKeyTimes = self._findKeyframesWithParentIndex(index)
+
+        # It seems that just disconnecting parent from modifier
+        # triggers some sort of update and MODO fixes all parent indexing
+        # on the parent channel envelope and it also removes keyframes
+        # with removed parent on parent and position and rotation offset channels.
+        chanToDisconnect << parentIndexChan
+
+        # For some reason scale offset channel keyframes are not removed so
+        # we need to do it manually.
+        self._deleteScaleChannelsKeysAtGivenTimes(backupKeyTimes)
+
     # -------- Private methods
-    
+
+    def _deleteScaleChannelsKeysAtGivenTimes(self, keyTimes):
+        for chanName in ['offsetScl.X', 'offsetScl.Y', 'offsetScl.Z']:
+            channel = self._item.channel(chanName)
+
+            time = lx.service.Selection().GetTime()
+            scene = lx.object.Scene(channel.item.internalItem.Context())
+            chanWrite = lx.object.ChannelWrite(scene.Channels(lx.symbol.s_ACTIONLAYER_EDIT, time))
+
+            try:
+                env = lx.object.Envelope(chanWrite.Envelope(channel.item.internalItem, channel.index))
+            except LookupError:
+                # The channel is not animated
+                continue
+
+            key = lx.object.Keyframe(env.Enumerator())
+
+            for keyTime in keyTimes:
+                try:
+                    key.Find(keyTime, lx.symbol.iENVSIDE_BOTH)
+                except LookupError:
+                    continue
+
+                key.Delete()
+
+    def _findKeyframesWithParentIndex(self, index):
+        channel = self.parentChannel
+
+        time = lx.service.Selection().GetTime()
+        scene = lx.object.Scene(channel.item.internalItem.Context())
+        chanRead = lx.object.ChannelRead(scene.Channels(lx.symbol.s_ACTIONLAYER_EDIT, time))
+
+        try:
+            env = lx.object.Envelope(chanRead.Envelope(channel.item.internalItem, channel.index))
+        except LookupError:
+            # The channel is not animated
+            return []
+
+        keyTimes = []
+        key = lx.object.Keyframe(env.Enumerator())
+        key.First()
+
+        while True:
+            if key.GetValueI(lx.symbol.iENVSIDE_BOTH) == index:
+                keyTimes.append(key.GetTime())
+
+            try:
+                key.Next()
+            except LookupError:
+                break
+
+        return keyTimes
+
     def __init__(self, modifierItem):
         self._item = modifierItem

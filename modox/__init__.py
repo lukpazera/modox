@@ -44,4 +44,7 @@ from assm import Assembly
 from vertMap import VertexMapUtils
 from chan_modifier import CMTransformConstraint
 from chan_modifier import TransformConstraintOperation
+from cmd_region import CommandRegionPolygon
+from cmd_region import CommandRegionGesture
+from cmd_region import CommandRegionCommand
 import const as c

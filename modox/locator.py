@@ -185,6 +185,18 @@ class LocatorUtils(object):
         return modoItem.channel('wrotMatrix')
 
     @classmethod
+    def getItemWorldScaleMatrixChannel(cls, modoItem):
+        """
+        Gets item's world scale matrix channel.
+
+        Returns
+        -------
+        modo.Channel, None
+            None is returned when channel cannot be found.
+        """
+        return modoItem.channel('wsclMatrix')
+
+    @classmethod
     def getItemWorldScaleVector(cls, modoItem):
         """
         Gets item world scale as a vector.
@@ -218,7 +230,7 @@ class LocatorUtils(object):
         return modo.Matrix4(mtxObject)
 
     @classmethod
-    def getItemPosition(self, modoItem, time=0.0, action=lx.symbol.s_ACTIONLAYER_EDIT):
+    def getItemPosition(self, modoItem, time=None, action=lx.symbol.s_ACTIONLAYER_EDIT):
         """ Gets item local position.
         
         Position is read from primary transform item channels directly.
@@ -227,7 +239,7 @@ class LocatorUtils(object):
         -------
         modo.Vector3
         """
-        if action==lx.symbol.s_ACTIONLAYER_SETUP:
+        if action == lx.symbol.s_ACTIONLAYER_SETUP:
             time = 0.0
         loc = modo.LocatorSuperType(modoItem.internalItem)
         return modo.Vector3(loc.position.get(time, action))
@@ -360,7 +372,39 @@ class LocatorUtils(object):
         zeroRot = self._getZeroTransformOfType(modoItem, self.TransformType.ROTATION)
         if zeroRot is not None:
             zeroRot.set((rot.x, rot.y, rot.z), time=time, key=key, action=action)
-        
+
+    @classmethod
+    def getItemPositionChannels(cls, modoItem):
+        """
+        Gets locator type item's primary position channels.
+
+        Returns
+        -------
+        [modo.Channel]
+        """
+        channels = []
+        xfrmItem = cls.getTransformItem(modoItem, c.TransformType.POSITION)
+        channels.append(xfrmItem.channel(c.TransformChannels.PositionX))
+        channels.append(xfrmItem.channel(c.TransformChannels.PositionY))
+        channels.append(xfrmItem.channel(c.TransformChannels.PositionZ))
+        return channels
+
+    @classmethod
+    def getItemRotationChannels(cls, modoItem):
+        """
+        Gets locator type item's primary rotation channels.
+
+        Returns
+        -------
+        [modo.Channel]
+        """
+        channels = []
+        xfrmItem = cls.getTransformItem(modoItem, c.TransformType.ROTATION)
+        channels.append(xfrmItem.channel(c.TransformChannels.RotationX))
+        channels.append(xfrmItem.channel(c.TransformChannels.RotationY))
+        channels.append(xfrmItem.channel(c.TransformChannels.RotationZ))
+        return channels
+
     @classmethod
     def getItemParentWorldTransform(self, modoItem):
         """ Gets item's parent world transform for current time.
